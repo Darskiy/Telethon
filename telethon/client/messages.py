@@ -644,6 +644,7 @@ class MessageMethods:
             schedule: 'hints.DateLike' = None,
             comment_to: 'typing.Union[int, types.Message]' = None,
             nosound_video: bool = None,
+            effect: int = None
     ) -> 'types.Message':
         """
         Sends a message to the specified user, chat or channel.
@@ -876,9 +877,9 @@ class MessageMethods:
                 reply_markup=markup,
                 entities=message.entities,
                 clear_draft=clear_draft,
-                no_webpage=not isinstance(
-                    message.media, types.MessageMediaWebPage),
-                schedule_date=schedule
+                no_webpage=not isinstance(message.media, types.MessageMediaWebPage),
+                schedule_date=schedule,
+                effect=effect
             )
             message = message.message
         else:
@@ -899,7 +900,8 @@ class MessageMethods:
                 silent=silent,
                 background=background,
                 reply_markup=self.build_reply_markup(buttons),
-                schedule_date=schedule
+                schedule_date=schedule,
+                effect=effect
             )
 
         result = await self(request)
