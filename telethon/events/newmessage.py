@@ -2,7 +2,8 @@ import re
 
 from .common import EventBuilder, EventCommon, name_inner_event, _into_id_set
 from .. import utils
-from ..tl import types
+from ..tl import types, custom
+from ..tl.custom.sendergetter import SenderGetter
 
 
 @name_inner_event
@@ -163,7 +164,7 @@ class NewMessage(EventBuilder):
 
         return super().filter(event)
 
-    class Event(EventCommon):
+    class Event(EventCommon, SenderGetter):
         """
         Represents the event of a new message. This event can be treated
         to all effects as a `Message <telethon.tl.custom.message.Message>`,
@@ -202,7 +203,7 @@ class NewMessage(EventBuilder):
                              msg_id=message.id, broadcast=bool(message.post))
 
             self.pattern_match = None
-            self.message = message
+            self.message: custom.Message = message
 
         def _set_client(self, client):
             super()._set_client(client)
