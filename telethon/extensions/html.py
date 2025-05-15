@@ -33,9 +33,9 @@ class HTMLToTelegramParser(HTMLParser):
         attrs = dict(attrs)
         EntityType = None
         args = {}
-        if tag == 'strong' or tag == 'b':
+        if tag in ('strong', 'b'):
             EntityType = MessageEntityBold
-        elif tag == 'em' or tag == 'i':
+        elif tag in ('em', 'i'):
             EntityType = MessageEntityItalic
         elif tag == 'u':
             EntityType = MessageEntityUnderline
@@ -45,6 +45,7 @@ class HTMLToTelegramParser(HTMLParser):
             EntityType = MessageEntitySpoiler
         elif tag == 'blockquote':
             EntityType = MessageEntityBlockquote
+            args['collapsed'] = 'collapsed' in attrs
         elif tag == 'code':
             try:
                 # If we're in the middle of a <pre> tag, this <code> tag is
@@ -137,7 +138,7 @@ ENTITY_TO_FORMATTER = {
     MessageEntityCode: ('<code>', '</code>'),
     MessageEntityUnderline: ('<u>', '</u>'),
     MessageEntityStrike: ('<del>', '</del>'),
-    MessageEntityBlockquote: ('<blockquote>', '</blockquote>'),
+    MessageEntityBlockquote: lambda e, _: (f"<blockquote{' collapsed' if e.collapsed else ''}>", '</blockquote>'),
     MessageEntityPre: lambda e, _: (
         "<pre>\n"
         "    <code class='language-{}'>\n"
