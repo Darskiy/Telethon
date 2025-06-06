@@ -13,7 +13,7 @@ from ..tl.types import (
     MessageEntityPre, MessageEntityEmail, MessageEntityUrl,
     MessageEntityTextUrl, MessageEntityMentionName,
     MessageEntityUnderline, MessageEntityStrike, MessageEntityBlockquote,
-    TypeMessageEntity, MessageEntitySpoiler
+    MessageEntityCustomEmoji, TypeMessageEntity, MessageEntitySpoiler
 )
 
 
@@ -33,15 +33,15 @@ class HTMLToTelegramParser(HTMLParser):
         attrs = dict(attrs)
         EntityType = None
         args = {}
-        if tag in ('strong', 'b'):
+        if tag in ('b', 'strong'):
             EntityType = MessageEntityBold
-        elif tag in ('em', 'i'):
+        elif tag in ('i', 'em'):
             EntityType = MessageEntityItalic
-        elif tag == 'u':
+        elif tag in ('u', 'ins'):
             EntityType = MessageEntityUnderline
-        elif tag in ('del', 's', 'strike'):
+        elif tag in ('s', 'strike', 'del'):
             EntityType = MessageEntityStrike
-        elif tag == 'details':
+        elif tag in ('details', 'tg-spoiler'):
             EntityType = MessageEntitySpoiler
         elif tag == 'blockquote':
             EntityType = MessageEntityBlockquote
@@ -81,6 +81,14 @@ class HTMLToTelegramParser(HTMLParser):
                     url = None
             self._open_tags_meta.popleft()
             self._open_tags_meta.appendleft(url)
+        elif tag == 'tg-emoji':
+            try:
+                emoji_id = int(attrs['emoji-id'])
+            except (KeyError, ValueError):
+                return
+
+            EntityType = MessageEntityCustomEmoji
+            args['document_id'] = emoji_id
 
         if EntityType and tag not in self._building_entities:
             self._building_entities[tag] = EntityType(
@@ -134,9 +142,9 @@ def parse(html: str) -> Tuple[str, List[TypeMessageEntity]]:
 ENTITY_TO_FORMATTER = {
     MessageEntityBold: ('<strong>', '</strong>'),
     MessageEntityItalic: ('<em>', '</em>'),
+    MessageEntityUnderline: ('<u>', '</u>'),
     MessageEntitySpoiler: ('<details>', '</details>'),
     MessageEntityCode: ('<code>', '</code>'),
-    MessageEntityUnderline: ('<u>', '</u>'),
     MessageEntityStrike: ('<del>', '</del>'),
     MessageEntityBlockquote: lambda e, _: (f"<blockquote{' collapsed' if e.collapsed else ''}>", '</blockquote>'),
     MessageEntityPre: lambda e, _: (
@@ -150,6 +158,7 @@ ENTITY_TO_FORMATTER = {
     MessageEntityUrl: lambda _, t: ('<a href="{}">'.format(t), '</a>'),
     MessageEntityTextUrl: lambda e, _: ('<a href="{}">'.format(escape(e.url)), '</a>'),
     MessageEntityMentionName: lambda e, _: ('<a href="tg://user?id={}">'.format(e.user_id), '</a>'),
+    MessageEntityCustomEmoji: lambda e, _: ('<tg-emoji emoji-id="{}">'.format(e.document_id), '</tg-emoji>'),
 }
 
 
