@@ -13,7 +13,7 @@ from ..tl.types import (
     MessageEntityPre, MessageEntityEmail, MessageEntityUrl,
     MessageEntityTextUrl, MessageEntityMentionName,
     MessageEntityUnderline, MessageEntityStrike, MessageEntityBlockquote,
-    MessageEntityCustomEmoji, TypeMessageEntity
+    MessageEntityCustomEmoji, TypeMessageEntity, MessageEntitySpoiler
 )
 
 
@@ -33,16 +33,19 @@ class HTMLToTelegramParser(HTMLParser):
         attrs = dict(attrs)
         EntityType = None
         args = {}
-        if tag == 'strong' or tag == 'b':
+        if tag in ('b', 'strong'):
             EntityType = MessageEntityBold
-        elif tag == 'em' or tag == 'i':
+        elif tag in ('i', 'em'):
             EntityType = MessageEntityItalic
-        elif tag == 'u':
+        elif tag in ('u', 'ins'):
             EntityType = MessageEntityUnderline
-        elif tag == 'del' or tag == 's':
+        elif tag in ('s', 'strike', 'del'):
             EntityType = MessageEntityStrike
+        elif tag in ('details', 'tg-spoiler'):
+            EntityType = MessageEntitySpoiler
         elif tag == 'blockquote':
             EntityType = MessageEntityBlockquote
+            args['collapsed'] = 'collapsed' in attrs
         elif tag == 'code':
             try:
                 # If we're in the middle of a <pre> tag, this <code> tag is
@@ -86,7 +89,7 @@ class HTMLToTelegramParser(HTMLParser):
 
             EntityType = MessageEntityCustomEmoji
             args['document_id'] = emoji_id
-            
+
         if EntityType and tag not in self._building_entities:
             self._building_entities[tag] = EntityType(
                 offset=len(self.text),
@@ -141,8 +144,9 @@ ENTITY_TO_FORMATTER = {
     MessageEntityItalic: ('<em>', '</em>'),
     MessageEntityCode: ('<code>', '</code>'),
     MessageEntityUnderline: ('<u>', '</u>'),
+    MessageEntitySpoiler: ('<details>', '</details>'),
     MessageEntityStrike: ('<del>', '</del>'),
-    MessageEntityBlockquote: ('<blockquote>', '</blockquote>'),
+    MessageEntityBlockquote: lambda e, _: (f"<blockquote{' collapsed' if e.collapsed else ''}>", '</blockquote>'),
     MessageEntityPre: lambda e, _: (
         "<pre>\n"
         "    <code class='language-{}'>\n"
