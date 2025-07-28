@@ -14,6 +14,7 @@ import os
 import pathlib
 import re
 import struct
+import warnings
 from collections import namedtuple
 from mimetypes import guess_extension
 from types import GeneratorType
@@ -1557,3 +1558,11 @@ def _photo_size_byte_count(size):
         return max(size.sizes)
     else:
         return None
+
+
+async def maybe_async(coro):
+    result = coro
+    if inspect.isawaitable(result):
+        warnings.warn('Using async sessions support is an experimental feature')
+        result = await result
+    return result
