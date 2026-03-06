@@ -326,7 +326,7 @@ Key differences:
 .. _Bot FAQ: https://core.telegram.org/bots/faq
 .. _tdlib: https://core.telegram.org/tdlib
 .. _MTProto: https://core.telegram.org/mtproto
-.. _MTProto vs HTTP Bot API: https://github.com/LonamiWebs/Telethon/wiki/MTProto-vs-HTTP-Bot-API
+.. _MTProto vs HTTP Bot API: https://codeberg.org/Lonami/Telethon/wiki/MTProto-vs-HTTP-Bot-API
 .. _requests: https://pypi.org/project/requests/
 .. _python-telegram-bot: https://python-telegram-bot.readthedocs.io
 .. _pyTelegramBotAPI: https://github.com/eternnoir/pyTelegramBotAPI
